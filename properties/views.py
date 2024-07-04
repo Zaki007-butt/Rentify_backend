@@ -4,7 +4,7 @@ from .models import Property
 from .serializers import PropertySerializer
 
 class PropertyPagination(PageNumberPagination):
-  page_size = 10
+  page_size = 12
   page_size_query_param = 'page_size'
   max_page_size = 100
 
@@ -24,5 +24,6 @@ class PropertyViewSet(viewsets.ModelViewSet):
       queryset = queryset.filter(property_category_id=category_id)
     if type_id:
       queryset = queryset.filter(property_type_id=type_id)
-
+    
+    queryset = queryset.order_by('-created_at')
     return queryset
