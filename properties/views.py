@@ -1,13 +1,19 @@
-from rest_framework import viewsets
-from rest_framework import filters
+from rest_framework import viewsets, filters
+from rest_framework.pagination import PageNumberPagination
 from .models import Property
 from .serializers import PropertySerializer
+
+class PropertyPagination(PageNumberPagination):
+  page_size = 10
+  page_size_query_param = 'page_size'
+  max_page_size = 100
 
 class PropertyViewSet(viewsets.ModelViewSet):
   queryset = Property.objects.all()
   serializer_class = PropertySerializer
   filter_backends = [filters.OrderingFilter]
   ordering_fields = ['created_at']
+  pagination_class = PropertyPagination
 
   def get_queryset(self):
     queryset = Property.objects.all()
