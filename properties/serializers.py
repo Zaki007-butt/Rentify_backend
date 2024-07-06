@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Property
+from .models import Property, PropertyCategory, PropertyType
 
 class PropertySerializer(serializers.ModelSerializer):
   property_category_name = serializers.SerializerMethodField()
@@ -18,3 +18,14 @@ class PropertySerializer(serializers.ModelSerializer):
 
   def get_property_type_name(self, obj):
     return obj.property_type.name if obj.property_type else None
+
+
+class PropertyCategorySerializer(serializers.ModelSerializer):
+  class Meta:
+    model = PropertyCategory
+    fields = '__all__'
+
+class PropertyTypeSerializer(serializers.ModelSerializer):
+  class Meta:
+    model = PropertyType
+    fields = '__all__'
