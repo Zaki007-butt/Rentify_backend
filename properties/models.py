@@ -52,6 +52,23 @@ class Property(models.Model):
     choices=STATUS_CHOICES,
     default='active'
   )
+  bedroom = models.IntegerField(
+    validators=[MinValueValidator(0)],
+    blank=True,
+    null=True
+  )
+  washroom = models.IntegerField(
+    validators=[MinValueValidator(0)],
+    blank=True,
+    null=True
+  )
+  area = models.DecimalField(
+    max_digits=10,
+    decimal_places=2,
+    validators=[MinValueValidator(0)],
+    blank=True,
+    null=True
+  )
   property_category = models.ForeignKey(
     PropertyCategory,
     on_delete=models.SET_NULL,
