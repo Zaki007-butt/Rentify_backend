@@ -2,6 +2,8 @@ from rest_framework import viewsets, filters
 from rest_framework.pagination import PageNumberPagination
 from .models import Property, PropertyCategory, PropertyType
 from .serializers import PropertySerializer, PropertyCategorySerializer, PropertyTypeSerializer
+from rest_framework.decorators import action
+from rest_framework.response import Response
 
 class PropertyPagination(PageNumberPagination):
   page_size = 24
@@ -33,6 +35,13 @@ class PropertyViewSet(viewsets.ModelViewSet):
 class PropertyCategoryViewSet(viewsets.ModelViewSet):
   queryset = PropertyCategory.objects.all()
   serializer_class = PropertyCategorySerializer
+
+  @action(detail=True, methods=['get'], url_path='types', url_name='property_types')
+  def get_types(self, request, pk=None):
+    category = self.get_object()
+    property_types = PropertyType.objects.filter(category=category)
+    serializer = PropertyTypeSerializer(property_types, many=True)
+    return Response(serializer.data)
 
 class PropertyTypeViewSet(viewsets.ModelViewSet):
   queryset = PropertyType.objects.all()
