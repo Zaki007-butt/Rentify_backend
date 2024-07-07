@@ -24,6 +24,11 @@ class Property(models.Model):
     ('inactive', 'Inactive')
   )
 
+  RENT_OR_BUY_CHOICES = (
+    ('rent', 'Rent'),
+    ('buy', 'Buy')
+  )
+
   title = models.CharField(
     max_length=200,
     validators=[MaxLengthValidator(200)],
@@ -82,6 +87,11 @@ class Property(models.Model):
     related_name='properties',
     blank=True,
     null=True
+  )
+  rent_or_buy = models.CharField(
+    max_length=10,
+    choices=RENT_OR_BUY_CHOICES,
+    default='buy'
   )
   created_at = models.DateTimeField(auto_now_add=True)
   updated_at = models.DateTimeField(auto_now=True)

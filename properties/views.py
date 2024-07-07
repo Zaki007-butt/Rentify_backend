@@ -22,11 +22,14 @@ class PropertyViewSet(viewsets.ModelViewSet):
     queryset = Property.objects.all()
     category_id = self.request.query_params.get('category_id')
     type_id = self.request.query_params.get('type_id')
+    rent_or_buy = self.request.query_params.get('type')
 
     if category_id:
       queryset = queryset.filter(property_category_id=category_id)
     if type_id:
       queryset = queryset.filter(property_type_id=type_id)
+    if rent_or_buy in ['rent', 'buy']:
+      queryset = queryset.filter(rent_or_buy=rent_or_buy)
     
     queryset = queryset.order_by('-created_at')
     return queryset
