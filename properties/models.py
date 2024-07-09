@@ -52,6 +52,13 @@ class Property(models.Model):
     blank=False,
     null=False
   )
+  city = models.CharField(
+    max_length=100,
+    validators=[MaxLengthValidator(100)],
+    blank=False,
+    null=False,
+    default='Sialkot'
+  )
   status = models.CharField(
     max_length=30,
     choices=STATUS_CHOICES,
