@@ -17,7 +17,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
   
   class Meta:
     model = User
-    fields = ['name', 'email', 'password', 'password_confirmation']
+    fields = ['name', 'email', 'password', 'password_confirmation', 'is_admin']
     extra_kwargs = {
       'password': { 'write_only': True }
     }
@@ -29,8 +29,12 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
       raise serializers.ValidationError("Password and confirmation password doesn't match")
     return attrs
 
-  def create(self, validate_data):
-    return User.objects.create_user(**validate_data)
+  def create(self, validated_data):
+    is_admin = validated_data.pop('is_admin', False)  # Default to False if not provided
+    user = User.objects.create_user(**validated_data)
+    user.is_admin = is_admin  # Set is_admin field
+    user.save()  # Save the user with updated field
+    return user
 
 class UserLoginSerializer(serializers.ModelSerializer):
   email = serializers.EmailField(max_length=255)
@@ -42,7 +46,7 @@ class UserLoginSerializer(serializers.ModelSerializer):
 class UserProfileSerializer(serializers.ModelSerializer):
   class Meta:
     model = User
-    fields = ['id', 'name', 'email']
+    fields = ['id', 'name', 'email', 'is_admin']
 
 class UserChangePasswordSerializer(serializers.Serializer):
   old_password = serializers.CharField(max_length=255)
