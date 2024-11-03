@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'properties',
     'account',
     'rest_framework_simplejwt',
+    'django_extensions',
 ]
 
 MIDDLEWARE = [
