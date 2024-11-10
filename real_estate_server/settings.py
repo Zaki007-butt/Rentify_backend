@@ -141,3 +141,7 @@ CORS_ALLOWED_ORIGINS = [
 ]
 
 CORS_ALLOW_CREDENTIALS = True
+
+# Configure Media URL and Root for uploaded files
+MEDIA_URL = '/media/'  # This is the URL to access uploaded files
+MEDIA_ROOT = BASE_DIR / 'media'  # Path where files will be saved

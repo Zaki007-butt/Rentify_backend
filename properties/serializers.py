@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Property, PropertyCategory, PropertyType
+from .models import Property, PropertyCategory, PropertyType, Agreement
 
 class PropertySerializer(serializers.ModelSerializer):
   property_category_name = serializers.SerializerMethodField()
@@ -28,4 +28,9 @@ class PropertyCategorySerializer(serializers.ModelSerializer):
 class PropertyTypeSerializer(serializers.ModelSerializer):
   class Meta:
     model = PropertyType
+    fields = '__all__'
+
+class AgreementSerializer(serializers.ModelSerializer):
+  class Meta:
+    model = Agreement
     fields = '__all__'

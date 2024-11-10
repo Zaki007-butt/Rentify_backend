@@ -4,6 +4,8 @@ from .models import Property, PropertyCategory, PropertyType
 from .serializers import PropertySerializer, PropertyCategorySerializer, PropertyTypeSerializer
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from .models import Agreement
+from .serializers import AgreementSerializer
 
 class PropertyPagination(PageNumberPagination):
   page_size = 24
@@ -49,3 +51,7 @@ class PropertyCategoryViewSet(viewsets.ModelViewSet):
 class PropertyTypeViewSet(viewsets.ModelViewSet):
   queryset = PropertyType.objects.all()
   serializer_class = PropertyTypeSerializer
+
+class AgreementViewSet(viewsets.ModelViewSet):
+  queryset = Agreement.objects.all()
+  serializer_class = AgreementSerializer

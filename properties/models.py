@@ -114,3 +114,59 @@ class Property(models.Model):
 
   def __str__(self):
     return self.title
+
+class Agreement(models.Model):
+    STATUS_CHOICES = (
+        ('pending', 'Pending'),
+        ('active', 'Active'),
+        ('completed', 'Completed'),
+        ('cancelled', 'Cancelled')
+    )
+
+    property = models.ForeignKey(
+        Property,
+        on_delete=models.CASCADE,
+        related_name='agreements'
+    )
+    image = models.ImageField(
+        upload_to='agreements/',
+        blank=True,
+        null=True
+    )
+    details = models.TextField(
+        blank=True,
+        null=True
+    )
+    rent_start_date = models.DateField(
+        blank=True,
+        null=True
+    )
+    rent_end_date = models.DateField(
+        blank=True,
+        null=True
+    )
+    purchase_date = models.DateField(
+        blank=True,
+        null=True
+    )
+    security_amount = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        validators=[MinValueValidator(0)],
+        blank=True,
+        null=True
+    )
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default='pending'
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name_plural = "Agreements"
+
+    def __str__(self):
+        return f"Agreement for {self.property.title}"
+
