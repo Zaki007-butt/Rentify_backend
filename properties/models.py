@@ -1,6 +1,6 @@
 from django.db import models
 from django.core.validators import MinValueValidator, MaxLengthValidator
-
+from account.models import User
 class PropertyCategory(models.Model):
   name = models.CharField(max_length=100, unique=True)
 
@@ -128,6 +128,13 @@ class Agreement(models.Model):
         on_delete=models.CASCADE,
         related_name='agreements'
     )
+
+    user = models.ForeignKey(
+        'account.User',
+        on_delete=models.CASCADE,
+        related_name='agreements'
+    )
+
     image = models.ImageField(
         upload_to='agreements/',
         blank=True,

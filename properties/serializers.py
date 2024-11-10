@@ -31,6 +31,18 @@ class PropertyTypeSerializer(serializers.ModelSerializer):
     fields = '__all__'
 
 class AgreementSerializer(serializers.ModelSerializer):
+  # Nested serializers for related fields
+  property = PropertySerializer(read_only=True)
+  user = serializers.SerializerMethodField()
+
   class Meta:
     model = Agreement
     fields = '__all__'
+
+  def get_user(self, obj):
+    user = obj.user
+    return {
+      'id': user.id,
+      'email': user.email,
+      'name': user.name,
+    }

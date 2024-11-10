@@ -55,3 +55,4 @@ class PropertyTypeViewSet(viewsets.ModelViewSet):
 class AgreementViewSet(viewsets.ModelViewSet):
   queryset = Agreement.objects.all()
   serializer_class = AgreementSerializer
+  pagination_class = PropertyPagination
