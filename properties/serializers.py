@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from .models import Property, PropertyCategory, PropertyType, Agreement
+from account.models import User
 
 class PropertySerializer(serializers.ModelSerializer):
   property_category_name = serializers.SerializerMethodField()
@@ -33,7 +34,18 @@ class PropertyTypeSerializer(serializers.ModelSerializer):
 class AgreementSerializer(serializers.ModelSerializer):
   # Nested serializers for related fields
   property = PropertySerializer(read_only=True)
-  user = serializers.SerializerMethodField()
+  property_id = serializers.PrimaryKeyRelatedField(
+    queryset=Property.objects.all(),
+    source='property',
+    write_only=True
+  )
+
+  user = serializers.SerializerMethodField(read_only=True)
+  user_id = serializers.PrimaryKeyRelatedField(
+    queryset=User.objects.all(),
+    source='user',
+    write_only=True
+  )
 
   class Meta:
     model = Agreement
