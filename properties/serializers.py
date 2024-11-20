@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Property, PropertyCategory, PropertyType, Agreement
+from .models import Property, PropertyCategory, PropertyType, Agreement, Customer
 from account.models import User
 
 class PropertySerializer(serializers.ModelSerializer):
@@ -31,6 +31,26 @@ class PropertyTypeSerializer(serializers.ModelSerializer):
     model = PropertyType
     fields = '__all__'
 
+class CustomerSerializer(serializers.ModelSerializer):
+  user = serializers.SerializerMethodField(read_only=True)
+  user_id = serializers.PrimaryKeyRelatedField(
+    queryset=User.objects.all(),
+    source='user',
+    write_only=True
+  )
+
+  class Meta:
+    model = Customer
+    fields = '__all__'
+
+  def get_user(self, obj):
+    user = obj.user
+    return {
+      'id': user.id,
+      'email': user.email,
+      'name': user.name
+    }
+
 class AgreementSerializer(serializers.ModelSerializer):
   # Nested serializers for related fields
   property = PropertySerializer(read_only=True)
@@ -40,10 +60,10 @@ class AgreementSerializer(serializers.ModelSerializer):
     write_only=True
   )
 
-  user = serializers.SerializerMethodField(read_only=True)
-  user_id = serializers.PrimaryKeyRelatedField(
-    queryset=User.objects.all(),
-    source='user',
+  customer = CustomerSerializer(read_only=True)
+  customer_id = serializers.PrimaryKeyRelatedField(
+    queryset=Customer.objects.all(),
+    source='customer',
     write_only=True
   )
 
@@ -51,10 +71,11 @@ class AgreementSerializer(serializers.ModelSerializer):
     model = Agreement
     fields = '__all__'
 
-  def get_user(self, obj):
-    user = obj.user
+  def get_customer(self, obj):
+    customer = obj.customer
     return {
-      'id': user.id,
-      'email': user.email,
-      'name': user.name,
+      'id': customer.id,
+      'cnic': customer.cnic,
+      'phone_number': customer.phone_number,
+      'address': customer.address
     }

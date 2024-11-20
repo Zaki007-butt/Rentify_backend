@@ -1,13 +1,12 @@
 from rest_framework import viewsets, filters
 from rest_framework.pagination import PageNumberPagination
-from .models import Property, PropertyCategory, PropertyType
-from .serializers import PropertySerializer, PropertyCategorySerializer, PropertyTypeSerializer
+from .models import Property, PropertyCategory, PropertyType, Customer, Agreement
+from .serializers import PropertySerializer, PropertyCategorySerializer, PropertyTypeSerializer, CustomerSerializer
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from .models import Agreement
 from .serializers import AgreementSerializer
 
-class PropertyPagination(PageNumberPagination):
+class GeneralPagination(PageNumberPagination):
   page_size = 24
   page_size_query_param = 'page_size'
   max_page_size = 100000
@@ -18,7 +17,7 @@ class PropertyViewSet(viewsets.ModelViewSet):
   filter_backends = [filters.OrderingFilter, filters.SearchFilter]
   ordering_fields = ['created_at']
   search_fields = ['title', 'description', 'address']
-  pagination_class = PropertyPagination
+  pagination_class = GeneralPagination
 
   def get_queryset(self):
     queryset = Property.objects.all()
@@ -52,7 +51,12 @@ class PropertyTypeViewSet(viewsets.ModelViewSet):
   queryset = PropertyType.objects.all()
   serializer_class = PropertyTypeSerializer
 
+class CustomerViewSet(viewsets.ModelViewSet):
+  queryset = Customer.objects.all()
+  serializer_class = CustomerSerializer
+  pagination_class = GeneralPagination
+
 class AgreementViewSet(viewsets.ModelViewSet):
   queryset = Agreement.objects.all()
   serializer_class = AgreementSerializer
-  pagination_class = PropertyPagination
+  pagination_class = GeneralPagination

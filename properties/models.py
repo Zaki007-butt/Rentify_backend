@@ -115,6 +115,39 @@ class Property(models.Model):
   def __str__(self):
     return self.title
 
+
+class Customer(models.Model):
+  user = models.ForeignKey(
+    'account.User',
+    on_delete=models.CASCADE,
+    related_name='customers'
+  )
+
+  cnic = models.CharField(
+    max_length=15,
+    unique=True,
+    blank=False,
+    null=False
+  )
+  phone_number = models.CharField(
+    max_length=15,
+    unique=True,
+    blank=False,
+    null=False
+  )
+  address = models.CharField(
+    max_length=255,
+    blank=False,
+    null=False
+  )
+
+  class Meta:
+    verbose_name_plural = "Customers"
+
+  def __str__(self):
+    return self.cnic
+
+
 class Agreement(models.Model):
     STATUS_CHOICES = (
         ('pending', 'Pending'),
@@ -129,10 +162,10 @@ class Agreement(models.Model):
         related_name='agreements'
     )
 
-    user = models.ForeignKey(
-        'account.User',
-        on_delete=models.CASCADE,
-        related_name='agreements'
+    customer = models.ForeignKey(
+      Customer,
+      on_delete=models.CASCADE,
+      related_name='agreements',
     )
 
     image = models.ImageField(

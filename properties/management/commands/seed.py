@@ -1,14 +1,18 @@
 from django.core.management.base import BaseCommand
-from properties.models import PropertyCategory, PropertyType, Property
+from account.models import User 
+from properties.models import PropertyCategory, PropertyType, Property, Customer, Agreement
 import random
+from datetime import date
 
 class Command(BaseCommand):
     help = "Seed the database with initial data"
 
     def handle(self, *args, **kwargs):
         self.stdout.write("Seeding database...")
+        self.create_users()
         self.create_categories_and_types()
         self.create_properties()
+        self.create_agreement()
         self.stdout.write("Database seeding completed.")
 
     def create_categories_and_types(self):
@@ -95,3 +99,59 @@ class Command(BaseCommand):
                 property_category=random.choice(PropertyCategory.objects.all()),
                 property_type=random.choice(PropertyType.objects.all()),
             )
+        self.stdout.write(self.style.SUCCESS("200 Properties created."))
+
+    def create_customer(self, user = User.objects.filter(is_admin=False).first()):
+        # Create a new customer and reference the first non-admin user
+        if user:  
+            customer = Customer.objects.create(
+                user=user, 
+                cnic='12345-6789012-3',  
+                phone_number='1234567890',  
+                address='123 Street Name, City'  
+            )
+            self.stdout.write(self.style.SUCCESS(f"Customer created with ID: {customer.id}"))
+        else:
+            self.stdout.write(self.style.ERROR("No users found in the database."))
+
+    def create_users(self):
+        # Creating two users - one admin and one non-admin
+        admin_user = User.objects.create_user(
+            name='Admin User',
+            email='admin@email.com',
+            password='admin123',  # Use a secure password in production
+        )
+        admin_user.is_admin=True # Set to True for admin user
+        admin_user.save()
+        self.stdout.write(self.style.SUCCESS(f"Admin user created with ID: {admin_user.id}"))
+
+        non_admin_user = User.objects.create_user(
+            name='Non Admin User',
+            email='nonadmin@email.com',
+            password='nonadmin123',  # Use a secure password in production
+        )
+        non_admin_user.is_admin=False  # Set to False for non-admin user
+        non_admin_user.save()
+        self.stdout.write(self.style.SUCCESS(f"Non-admin user created with ID: {non_admin_user.id}"))
+
+        self.create_customer(user=non_admin_user)
+
+    def create_agreement(self):
+        property_instance = Property.objects.first()
+        customer_instance = Customer.objects.first()
+
+        # Check if we have a property and customer, then create the agreement
+        if property_instance and customer_instance:
+            agreement = Agreement.objects.create(
+                property=property_instance,               # Associate the first property
+                customer=customer_instance,               # Associate the first customer
+                rent_start_date=date(2024, 11, 21),        # Set rent start date
+                rent_end_date=date(2025, 11, 21),          # Set rent end date
+                details="This is the agreement for renting the property.",  # Optional: any additional details
+                security_amount=5000.00,                  # Optional: security amount for the rental agreement
+                status='pending'                           # Default status (can be 'pending', 'active', etc.)
+            )
+            self.stdout.write(self.style.SUCCESS(f"Agreement created with ID: {agreement.id}"))
+        else:
+            self.stdout.write(self.style.ERROR("Either property or customer not found."))
+
