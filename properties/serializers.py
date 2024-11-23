@@ -60,6 +60,16 @@ class AgreementSerializer(serializers.ModelSerializer):
     write_only=True
   )
 
+  user_details = serializers.SerializerMethodField(read_only=True)
+
+  def get_user_details(self, obj):
+    user = obj.customer.user
+    return {
+      'id': user.id,
+      'email': user.email,
+      'name': user.name
+    }
+
   customer = CustomerSerializer(read_only=True)
   customer_id = serializers.PrimaryKeyRelatedField(
     queryset=Customer.objects.all(),
