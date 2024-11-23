@@ -56,7 +56,20 @@ class CustomerViewSet(viewsets.ModelViewSet):
   serializer_class = CustomerSerializer
   pagination_class = GeneralPagination
 
+  @action(detail=False, methods=['get'], url_path='get', url_name='get_customer')
+  def get_customer(self, request):
+    user = request.user
+    customer = Customer.objects.filter(user=user).first()  # Check if customer exists for the logged-in user
+    if customer:
+      serializer = self.get_serializer(customer)
+      return Response({'customer': serializer.data}) 
+    return Response({'customer': False})  # Return false if no customer is found
+
 class AgreementViewSet(viewsets.ModelViewSet):
+
+  def get_queryset(self):
+    user = self.request.user
+    return Agreement.objects.filter(customer__user=user).order_by('-created_at')
   queryset = Agreement.objects.all()
   serializer_class = AgreementSerializer
   pagination_class = GeneralPagination

@@ -143,6 +143,7 @@ class Customer(models.Model):
 
   class Meta:
     verbose_name_plural = "Customers"
+    unique_together = ('user',)
 
   def __str__(self):
     return self.cnic
