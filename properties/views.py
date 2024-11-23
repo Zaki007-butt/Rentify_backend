@@ -66,10 +66,13 @@ class CustomerViewSet(viewsets.ModelViewSet):
     return Response({'customer': False})  # Return false if no customer is found
 
 class AgreementViewSet(viewsets.ModelViewSet):
-
   def get_queryset(self):
     user = self.request.user
-    return Agreement.objects.filter(customer__user=user).order_by('-created_at')
+    if user.is_admin:
+      return Agreement.objects.all().order_by('-created_at')
+    else:
+      return Agreement.objects.filter(customer__user=user).order_by('-created_at')
+
   queryset = Agreement.objects.all()
   serializer_class = AgreementSerializer
   pagination_class = GeneralPagination
