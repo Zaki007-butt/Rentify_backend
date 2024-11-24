@@ -80,5 +80,16 @@ class UserChangePasswordView(APIView):
     user.set_password(password)
     user.save()
 
+class UserUpdateView(APIView):
+  renderer_classes = (UserRenderer,)
+  authentication_classes = [JWTAuthentication]
+  permission_classes = [IsAuthenticated]
 
+  def put(self, request):
+    user = request.user
+    serializer = UserProfileSerializer(user, data=request.data, partial=True)
+    if serializer.is_valid():
+      serializer.save()
+      return Response({'success': True, 'data': serializer.data}, status=status.HTTP_200_OK)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
