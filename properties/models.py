@@ -169,6 +169,11 @@ class Agreement(models.Model):
       related_name='agreements',
     )
 
+    customer_note = models.TextField(
+        blank=True,
+        null=True
+    )
+
     image = models.ImageField(
         upload_to='agreements/',
         blank=True,
@@ -178,11 +183,25 @@ class Agreement(models.Model):
         blank=True,
         null=True
     )
+    rent_amount = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        validators=[MinValueValidator(0)],
+        blank=True,
+        null=True
+    )
     rent_start_date = models.DateField(
         blank=True,
         null=True
     )
     rent_end_date = models.DateField(
+        blank=True,
+        null=True
+    )
+    purchase_amount = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        validators=[MinValueValidator(0)],
         blank=True,
         null=True
     )
