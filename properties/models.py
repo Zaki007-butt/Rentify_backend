@@ -230,3 +230,57 @@ class Agreement(models.Model):
     def __str__(self):
         return f"Agreement for {self.property.title}"
 
+class Payment(models.Model):
+    STATUS_CHOICES = (
+        ('pending', 'Pending'),
+        ('completed', 'Completed'),
+        ('failed', 'Failed'),
+        ('refunded', 'Refunded')
+    )
+
+    METHOD_CHOICES = (
+        ('cash', 'Cash'),
+        ('bank_transfer', 'Bank Transfer'),
+        ('cheque', 'Cheque'),
+        ('other', 'Other')
+    )
+
+    agreement = models.ForeignKey(
+        Agreement,
+        on_delete=models.CASCADE,
+        related_name='payments'
+    )
+
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default='pending'
+    )
+
+    method = models.CharField(
+        max_length=20,
+        choices=METHOD_CHOICES,
+        default='cash'
+    )
+
+    amount = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        validators=[MinValueValidator(0)],
+        blank=False,
+        null=False
+    )
+
+    date = models.DateField(
+        auto_now_add=True
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name_plural = "Payments"
+
+    def __str__(self):
+        return f"Payment of {self.amount} for {self.agreement}"
+
