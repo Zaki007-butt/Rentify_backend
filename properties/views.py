@@ -64,6 +64,19 @@ class CustomerViewSet(viewsets.ModelViewSet):
       serializer = self.get_serializer(customer)
       return Response({'customer': serializer.data}) 
     return Response({'customer': False})  # Return false if no customer is found
+  
+  @action(detail=False, methods=['get'], url_path='active_customers', url_name='active_customers')
+  def get_active_customers(self, request):
+    # Get customers who have at least one active agreement using exists() to ensure at least one active agreement
+    active_customers = Customer.objects.filter(
+      agreements__status='active'
+    ).filter(
+      agreements__isnull=False  # Ensure customer has agreements
+    ).distinct()
+    
+    serializer = self.get_serializer(active_customers, many=True)
+    return Response({'results': serializer.data})
+
 
 class AgreementViewSet(viewsets.ModelViewSet):
   def get_queryset(self):
