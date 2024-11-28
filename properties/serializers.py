@@ -30,7 +30,6 @@ class PropertyTypeSerializer(serializers.ModelSerializer):
   class Meta:
     model = PropertyType
     fields = '__all__'
-
 class CustomerSerializer(serializers.ModelSerializer):
   user = serializers.SerializerMethodField(read_only=True)
   user_id = serializers.PrimaryKeyRelatedField(
@@ -38,6 +37,7 @@ class CustomerSerializer(serializers.ModelSerializer):
     source='user',
     write_only=True
   )
+  agreements = serializers.SerializerMethodField(read_only=True)
 
   class Meta:
     model = Customer
@@ -50,6 +50,31 @@ class CustomerSerializer(serializers.ModelSerializer):
       'email': user.email,
       'name': user.name
     }
+
+  def get_agreements(self, obj):
+    try:
+      agreements = obj.agreements.all()
+      return [{
+        'id': agreement.id,
+        'customer_note': agreement.customer_note,
+        'details': agreement.details,
+        'rent_amount': agreement.rent_amount,
+        'rent_start_date': agreement.rent_start_date,
+        'rent_end_date': agreement.rent_end_date,
+        'purchase_amount': agreement.purchase_amount,
+        'purchase_date': agreement.purchase_date,
+        'security_amount': agreement.security_amount,
+        'status': agreement.status,
+        'created_at': agreement.created_at,
+        'updated_at': agreement.updated_at,
+        'property': {
+          'id': agreement.property.id,
+          'title': agreement.property.title,
+          'rent_or_buy': agreement.property.rent_or_buy
+        }
+      } for agreement in agreements]
+    except Exception:
+      return []
 
 class AgreementSerializer(serializers.ModelSerializer):
   # Nested serializers for related fields

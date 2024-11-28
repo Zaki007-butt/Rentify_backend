@@ -67,14 +67,12 @@ class CustomerViewSet(viewsets.ModelViewSet):
   
   @action(detail=False, methods=['get'], url_path='active_customers', url_name='active_customers')
   def get_active_customers(self, request):
-    # Get customers who have at least one active agreement using exists() to ensure at least one active agreement
-    active_customers = Customer.objects.filter(
-      agreements__status='active'
-    ).filter(
-      agreements__isnull=False  # Ensure customer has agreements
+    # Get all customers who have at least one agreement
+    customers_with_agreements = Customer.objects.filter(
+      agreements__isnull=False  # Ensure customer has at least one agreement
     ).distinct()
     
-    serializer = self.get_serializer(active_customers, many=True)
+    serializer = self.get_serializer(customers_with_agreements, many=True)
     return Response({'results': serializer.data})
 
 
