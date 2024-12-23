@@ -1,17 +1,26 @@
 from rest_framework import serializers
-from .models import Property, PropertyCategory, PropertyType, Agreement, Customer
+from .models import Property, PropertyCategory, PropertyType, Agreement, Customer, PropertyImage
 from account.models import User
+from django.core.files.base import ContentFile
+import base64
 
 class PropertySerializer(serializers.ModelSerializer):
   property_category_name = serializers.SerializerMethodField()
   property_type_name = serializers.SerializerMethodField()
+  images = serializers.SerializerMethodField()
+  uploaded_images = serializers.ListField(
+    child=serializers.ImageField(),
+    write_only=True,
+    required=False
+  )
 
   class Meta:
     model = Property
     fields = [
       'id', 'title', 'description', 'price', 'address', 'city', 'status', 'rent_or_buy',
       'bedroom', 'washroom', 'area', 'property_category', 'property_type',
-      'property_category_name', 'property_type_name', 'created_at', 'updated_at'
+      'property_category_name', 'property_type_name', 'created_at', 'updated_at',
+      'images', 'uploaded_images'
     ]
 
   def get_property_category_name(self, obj):
@@ -19,6 +28,38 @@ class PropertySerializer(serializers.ModelSerializer):
 
   def get_property_type_name(self, obj):
     return obj.property_type.name if obj.property_type else None
+
+  def get_images(self, obj):
+    return PropertyImageSerializer(obj.property_images.all(), many=True).data
+
+  def create(self, validated_data):
+    uploaded_images = validated_data.pop('uploaded_images', [])
+    property_instance = Property.objects.create(**validated_data)
+    
+    for image in uploaded_images:
+      PropertyImage.objects.create(
+        property=property_instance,
+        image=image
+      )
+    
+    return property_instance
+
+  def update(self, instance, validated_data):
+    uploaded_images = validated_data.pop('uploaded_images', [])
+    
+    # Update the property instance
+    for attr, value in validated_data.items():
+      setattr(instance, attr, value)
+    instance.save()
+    
+    # Add new images
+    for image in uploaded_images:
+      PropertyImage.objects.create(
+        property=instance,
+        image=image
+      )
+    
+    return instance
 
 
 class PropertyCategorySerializer(serializers.ModelSerializer):
@@ -114,3 +155,8 @@ class AgreementSerializer(serializers.ModelSerializer):
       'phone_number': customer.phone_number,
       'address': customer.address
     }
+
+class PropertyImageSerializer(serializers.ModelSerializer):
+  class Meta:
+    model = PropertyImage
+    fields = ['id', 'image', 'created_at']

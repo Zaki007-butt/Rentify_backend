@@ -1,10 +1,11 @@
 from rest_framework import viewsets, filters
 from rest_framework.pagination import PageNumberPagination
-from .models import Property, PropertyCategory, PropertyType, Customer, Agreement
+from .models import Property, PropertyCategory, PropertyType, Customer, Agreement, PropertyImage
 from .serializers import PropertySerializer, PropertyCategorySerializer, PropertyTypeSerializer, CustomerSerializer
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from .serializers import AgreementSerializer
+from rest_framework import status
 
 class GeneralPagination(PageNumberPagination):
   page_size = 24
@@ -35,6 +36,31 @@ class PropertyViewSet(viewsets.ModelViewSet):
     queryset = queryset.order_by('-created_at')
     return queryset
 
+  @action(detail=True, methods=['delete'])
+  def delete_image(self, request, pk=None):
+    try:
+      image_id = request.data.get('image_id')
+      if not image_id:
+        return Response(
+          {'error': 'image_id is required'}, 
+          status=status.HTTP_400_BAD_REQUEST
+        )
+      
+      image = PropertyImage.objects.get(
+        id=image_id, 
+        property_id=pk
+      )
+      image.delete()
+      
+      return Response(
+        {'message': 'Image deleted successfully'}, 
+        status=status.HTTP_200_OK
+      )
+    except PropertyImage.DoesNotExist:
+      return Response(
+        {'error': 'Image not found'}, 
+        status=status.HTTP_404_NOT_FOUND
+      )
 
 class PropertyCategoryViewSet(viewsets.ModelViewSet):
   queryset = PropertyCategory.objects.all()
