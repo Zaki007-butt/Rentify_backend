@@ -120,8 +120,27 @@ class PaymentViewSet(viewsets.ModelViewSet):
     serializer_class = PaymentSerializer
     pagination_class = GeneralPagination
 
+    @action(detail=False, methods=['get'])
+    def user(self, request):
+        # Get payments where the agreement's customer's user matches the current user
+        payments = Payment.objects.filter(
+            agreement__customer__user=request.user
+        ).order_by('-created_at')
+        
+        page = self.paginate_queryset(payments)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(payments, many=True)
+        return Response(serializer.data)
+
     def get_queryset(self):
         queryset = Payment.objects.all()
+        
+        # If user is not admin, only show their own payments
+        if not self.request.user.is_admin:
+            queryset = queryset.filter(agreement__customer__user=self.request.user)
         
         # Filter by agreement if provided
         agreement_id = self.request.query_params.get('agreement')
