@@ -6,7 +6,8 @@ from .views import (
     PropertyTypeViewSet, 
     AgreementViewSet, 
     CustomerViewSet,
-    PaymentViewSet
+    PaymentViewSet,
+    UtilityBillViewSet
 )
 
 router = DefaultRouter()
@@ -16,6 +17,7 @@ router.register(r'types', PropertyTypeViewSet)
 router.register(r'agreements', AgreementViewSet)
 router.register(r'customers', CustomerViewSet)
 router.register(r'payments', PaymentViewSet)
+router.register(r'utility-bills', UtilityBillViewSet)
 
 urlpatterns = [
   path('', include(router.urls)),

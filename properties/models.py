@@ -299,3 +299,49 @@ class PropertyImage(models.Model):
     def __str__(self):
         return f"Image for {self.property.title}"
 
+class UtilityBill(models.Model):
+    BILL_TYPE_CHOICES = (
+        ('electricity', 'Electricity'),
+        ('gas', 'Gas'),
+        ('water', 'Water'),
+        ('other', 'Other')
+    )
+
+    agreement = models.ForeignKey(
+        Agreement,
+        on_delete=models.CASCADE,
+        related_name='utility_bills'
+    )
+    bill_type = models.CharField(
+        max_length=20,
+        choices=BILL_TYPE_CHOICES
+    )
+    bill_amount = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        validators=[MinValueValidator(0)]
+    )
+    paid_amount = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        validators=[MinValueValidator(0)],
+        null=True,
+        blank=True
+    )
+    bill_date = models.DateField()
+    due_date = models.DateField()
+    paid_date = models.DateField(null=True, blank=True)
+    bill_image = models.ImageField(
+        upload_to='bills/',
+        null=True,
+        blank=True
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-bill_date']
+
+    def __str__(self):
+        return f"{self.bill_type} bill for {self.agreement}"
+

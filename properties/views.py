@@ -1,7 +1,7 @@
 from rest_framework import viewsets, filters
 from rest_framework.pagination import PageNumberPagination
-from .models import Property, PropertyCategory, PropertyType, Customer, Agreement, PropertyImage, Payment
-from .serializers import PropertySerializer, PropertyCategorySerializer, PropertyTypeSerializer, CustomerSerializer, PaymentSerializer
+from .models import Property, PropertyCategory, PropertyType, Customer, Agreement, PropertyImage, Payment, UtilityBill
+from .serializers import PropertySerializer, PropertyCategorySerializer, PropertyTypeSerializer, CustomerSerializer, PaymentSerializer, UtilityBillSerializer
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from .serializers import AgreementSerializer
@@ -176,5 +176,60 @@ class PaymentViewSet(viewsets.ModelViewSet):
         elif new_status == 'pending':
             # If status is being set back to pending, remove the date
             request.data['date'] = None
+        
+        return super().partial_update(request, *args, **kwargs)
+
+class UtilityBillViewSet(viewsets.ModelViewSet):
+    queryset = UtilityBill.objects.all()
+    serializer_class = UtilityBillSerializer
+    pagination_class = GeneralPagination
+
+    @action(detail=False, methods=['get'])
+    def user(self, request):
+        # Get bills where the agreement's customer's user matches the current user
+        bills = UtilityBill.objects.filter(
+            agreement__customer__user=request.user
+        ).order_by('-bill_date')
+        
+        page = self.paginate_queryset(bills)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(bills, many=True)
+        return Response(serializer.data)
+
+    def get_queryset(self):
+        queryset = UtilityBill.objects.all()
+        
+        # If user is not admin, only show their own bills
+        if not self.request.user.is_admin:
+            queryset = queryset.filter(agreement__customer__user=self.request.user)
+        
+        # Filter by agreement if provided
+        agreement_id = self.request.query_params.get('agreement')
+        if agreement_id:
+            queryset = queryset.filter(agreement_id=agreement_id)
+        
+        # Filter by customer if provided
+        customer_id = self.request.query_params.get('customer')
+        if customer_id:
+            queryset = queryset.filter(agreement__customer_id=customer_id)
+        
+        return queryset.order_by('-bill_date')
+
+    def partial_update(self, request, *args, **kwargs):
+        bill = self.get_object()
+        
+        # If bill is already paid, don't allow updates
+        if bill.paid_date:
+            return Response(
+                {'error': 'Bill is already paid'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # If paid_amount is being set, set the paid_date
+        if 'paid_amount' in request.data:
+            request.data['paid_date'] = timezone.now().date()
         
         return super().partial_update(request, *args, **kwargs)

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Property, PropertyCategory, PropertyType, Agreement, Customer, PropertyImage, Payment
+from .models import Property, PropertyCategory, PropertyType, Agreement, Customer, PropertyImage, Payment, UtilityBill
 from account.models import User
 from django.core.files.base import ContentFile
 import base64
@@ -172,6 +172,32 @@ class PaymentSerializer(serializers.ModelSerializer):
             'agreement_details'
         ]
         read_only_fields = ['date']  # Date is set automatically when status changes
+
+    def get_agreement_details(self, obj):
+        return {
+            'id': obj.agreement.id,
+            'property': {
+                'id': obj.agreement.property.id,
+                'title': obj.agreement.property.title,
+                'rent_or_buy': obj.agreement.property.rent_or_buy
+            },
+            'customer': {
+                'id': obj.agreement.customer.id,
+                'name': obj.agreement.customer.user.name,
+                'email': obj.agreement.customer.user.email
+            }
+        }
+
+class UtilityBillSerializer(serializers.ModelSerializer):
+    agreement_details = serializers.SerializerMethodField(read_only=True)
+    
+    class Meta:
+        model = UtilityBill
+        fields = [
+            'id', 'agreement', 'bill_type', 'bill_amount',
+            'paid_amount', 'bill_date', 'due_date', 'paid_date',
+            'bill_image', 'created_at', 'updated_at', 'agreement_details'
+        ]
 
     def get_agreement_details(self, obj):
         return {
