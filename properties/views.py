@@ -1,11 +1,12 @@
 from rest_framework import viewsets, filters
 from rest_framework.pagination import PageNumberPagination
-from .models import Property, PropertyCategory, PropertyType, Customer, Agreement, PropertyImage
-from .serializers import PropertySerializer, PropertyCategorySerializer, PropertyTypeSerializer, CustomerSerializer
+from .models import Property, PropertyCategory, PropertyType, Customer, Agreement, PropertyImage, Payment
+from .serializers import PropertySerializer, PropertyCategorySerializer, PropertyTypeSerializer, CustomerSerializer, PaymentSerializer
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from .serializers import AgreementSerializer
 from rest_framework import status
+from django.utils import timezone
 
 class GeneralPagination(PageNumberPagination):
   page_size = 24
@@ -113,3 +114,48 @@ class AgreementViewSet(viewsets.ModelViewSet):
   queryset = Agreement.objects.all()
   serializer_class = AgreementSerializer
   pagination_class = GeneralPagination
+
+class PaymentViewSet(viewsets.ModelViewSet):
+    queryset = Payment.objects.all()
+    serializer_class = PaymentSerializer
+    pagination_class = GeneralPagination
+
+    def get_queryset(self):
+        queryset = Payment.objects.all()
+        
+        # Filter by agreement if provided
+        agreement_id = self.request.query_params.get('agreement')
+        if agreement_id:
+            queryset = queryset.filter(agreement_id=agreement_id)
+        
+        # Filter by customer if provided
+        customer_id = self.request.query_params.get('customer')
+        if customer_id:
+            queryset = queryset.filter(agreement__customer_id=customer_id)
+        
+        return queryset.order_by('-created_at')
+
+    def partial_update(self, request, *args, **kwargs):
+        payment = self.get_object()
+        
+        # If payment is not pending, don't allow updates
+        if payment.status != 'pending':
+            return Response(
+                {'error': 'Only pending payments can be updated'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # If status is being changed from pending
+        new_status = request.data.get('status')
+        if new_status and new_status != 'pending':
+            # Use the date from frontend if provided, otherwise use current date
+            payment_date = request.data.get('date')
+            if payment_date:
+                request.data['date'] = payment_date
+            else:
+                request.data['date'] = timezone.now().date()
+        elif new_status == 'pending':
+            # If status is being set back to pending, remove the date
+            request.data['date'] = None
+        
+        return super().partial_update(request, *args, **kwargs)

@@ -234,8 +234,7 @@ class Payment(models.Model):
     STATUS_CHOICES = (
         ('pending', 'Pending'),
         ('completed', 'Completed'),
-        ('failed', 'Failed'),
-        ('refunded', 'Refunded')
+        ('failed', 'Failed')
     )
 
     METHOD_CHOICES = (
