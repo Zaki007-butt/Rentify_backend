@@ -46,7 +46,7 @@ class UserLoginSerializer(serializers.ModelSerializer):
 class UserProfileSerializer(serializers.ModelSerializer):
   class Meta:
     model = User
-    fields = ['id', 'name', 'email', 'is_admin']
+    fields = ['id', 'name', 'email', 'is_admin', 'avatar']
 
 class UserChangePasswordSerializer(serializers.Serializer):
   old_password = serializers.CharField(max_length=255)
@@ -97,4 +97,16 @@ class UserPasswordResetSerializer(serializers.Serializer):
   def reset_user_password(self, user, password):
     user.set_password(password)
     user.save()
+    
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('id', 'name', 'email', 'is_admin', 'avatar')
+        read_only_fields = ('id', 'is_admin')
+
+class UserProfileUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('name', 'email', 'avatar')
     

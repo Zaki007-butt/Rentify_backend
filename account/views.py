@@ -17,7 +17,8 @@ from account.serializers import (
   UserLoginSerializer,
   UserProfileSerializer,
   UserChangePasswordSerializer,
-  UserPasswordResetSerializer
+  UserPasswordResetSerializer,
+  UserProfileUpdateSerializer
 )
 from account.renderers import UserRenderer
 from account.utils import get_tokens_for_user
@@ -62,7 +63,13 @@ class UserProfileView(APIView):
   def get(self, request):
     user = request.user
     serializer = UserProfileSerializer(user)
-    return Response({'success': True, 'data': serializer.data}, status=status.HTTP_200_OK)
+    return Response({
+      'success': True, 
+      'data': {
+        **serializer.data,
+        'avatar': request.build_absolute_uri(user.avatar.url) if user.avatar else None
+      }
+    }, status=status.HTTP_200_OK)
 
 class UserChangePasswordView(APIView):
   renderer_classes = (UserRenderer,)
@@ -92,4 +99,31 @@ class UserUpdateView(APIView):
       serializer.save()
       return Response({'success': True, 'data': serializer.data}, status=status.HTTP_200_OK)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class UpdateProfileView(APIView):
+    renderer_classes = (UserRenderer,)
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def patch(self, request):
+        user = request.user
+        serializer = UserProfileUpdateSerializer(user, data=request.data, partial=True)
+        
+        if serializer.is_valid():
+            # Handle avatar file upload
+            if 'avatar' in request.FILES:
+                # Delete old avatar if exists
+                if user.avatar:
+                    user.avatar.delete(save=False)
+                user.avatar = request.FILES['avatar']
+            
+            serializer.save()
+            return Response({
+                'success': True,
+                'data': {
+                    **serializer.data,
+                    'avatar': request.build_absolute_uri(user.avatar.url) if user.avatar else None
+                }
+            })
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
