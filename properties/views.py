@@ -231,5 +231,9 @@ class UtilityBillViewSet(viewsets.ModelViewSet):
         # If paid_amount is being set, set the paid_date
         if 'paid_amount' in request.data:
             request.data['paid_date'] = timezone.now().date()
+            
+            # Handle payment receipt if provided
+            if 'payment_receipt' in request.FILES:
+                request.data['payment_receipt'] = request.FILES['payment_receipt']
         
         return super().partial_update(request, *args, **kwargs)

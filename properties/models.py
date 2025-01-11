@@ -336,6 +336,12 @@ class UtilityBill(models.Model):
         null=True,
         blank=True
     )
+    payment_receipt = models.ImageField(
+        upload_to='bills/receipts/',
+        null=True,
+        blank=True,
+        help_text='Payment receipt image'
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

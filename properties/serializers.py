@@ -196,7 +196,8 @@ class UtilityBillSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'agreement', 'bill_type', 'bill_amount',
             'paid_amount', 'bill_date', 'due_date', 'paid_date',
-            'bill_image', 'created_at', 'updated_at', 'agreement_details'
+            'bill_image', 'payment_receipt', 'created_at', 'updated_at', 
+            'agreement_details'
         ]
 
     def get_agreement_details(self, obj):
