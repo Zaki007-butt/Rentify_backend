@@ -2,11 +2,12 @@ from rest_framework import viewsets, filters
 from rest_framework.pagination import PageNumberPagination
 from .models import Property, PropertyCategory, PropertyType, Customer, Agreement, PropertyImage, Payment, UtilityBill
 from .serializers import PropertySerializer, PropertyCategorySerializer, PropertyTypeSerializer, CustomerSerializer, PaymentSerializer, UtilityBillSerializer
-from rest_framework.decorators import action
+from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
 from .serializers import AgreementSerializer
 from rest_framework import status
 from django.utils import timezone
+from rest_framework.permissions import IsAdminUser
 
 class GeneralPagination(PageNumberPagination):
   page_size = 24
@@ -237,3 +238,33 @@ class UtilityBillViewSet(viewsets.ModelViewSet):
                 request.data['payment_receipt'] = request.FILES['payment_receipt']
         
         return super().partial_update(request, *args, **kwargs)
+
+@api_view(['GET'])
+@permission_classes([IsAdminUser])
+def get_dashboard_stats(request):
+    # Get total properties
+    total_properties = Property.objects.count()
+    
+    # Get properties by status
+    sold_properties = Agreement.objects.filter(
+        status='active',
+        property__rent_or_buy='buy'
+    ).count()
+    
+    on_rent = Agreement.objects.filter(
+        status='active',
+        property__rent_or_buy='rent'
+    ).count()
+    
+    on_hold = Property.objects.filter(status='inactive').count()
+    
+    # Get pending requests (agreements)
+    pending_requests = Agreement.objects.filter(status='pending').count()
+
+    return Response({
+        'total_properties': total_properties,
+        'sold_properties': sold_properties,
+        'on_rent': on_rent,
+        'on_hold': on_hold,
+        'pending_requests': pending_requests
+    })

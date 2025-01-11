@@ -7,7 +7,8 @@ from .views import (
     AgreementViewSet, 
     CustomerViewSet,
     PaymentViewSet,
-    UtilityBillViewSet
+    UtilityBillViewSet,
+    get_dashboard_stats
 )
 
 router = DefaultRouter()
@@ -21,4 +22,5 @@ router.register(r'utility-bills', UtilityBillViewSet)
 
 urlpatterns = [
   path('', include(router.urls)),
+  path('dashboard/stats/', get_dashboard_stats, name='dashboard-stats'),
 ]
