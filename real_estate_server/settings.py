@@ -26,8 +26,6 @@ SECRET_KEY = 'django-insecure-ftdv=b!@8bp&aje(50bx1_d5r7gne7*o%p3uj(8a=6m$@0t8g9
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
-
 
 # Application definition
 
@@ -136,6 +134,12 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+ALLOWED_HOSTS = [
+    "127.0.0.1",
+    "localhost",
+    "warm-jennet-fond.ngrok-free.app",
+]
 
 CORS_ALLOWED_ORIGINS = [
   "http://localhost:5173",
