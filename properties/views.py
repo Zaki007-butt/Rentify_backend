@@ -10,7 +10,7 @@ from django.utils import timezone
 from rest_framework.permissions import IsAdminUser
 
 class GeneralPagination(PageNumberPagination):
-  page_size = 24
+  page_size = 10  # Default page size
   page_size_query_param = 'page_size'
   max_page_size = 100000
 
