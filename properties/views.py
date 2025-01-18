@@ -27,16 +27,37 @@ class PropertyViewSet(viewsets.ModelViewSet):
     category_id = self.request.query_params.get('category_id')
     type_id = self.request.query_params.get('type_id')
     rent_or_buy = self.request.query_params.get('type')
-
+    filter_type = self.request.query_params.get('filter_type')
+    
     if category_id:
       queryset = queryset.filter(property_category_id=category_id)
     if type_id:
       queryset = queryset.filter(property_type_id=type_id)
     if rent_or_buy in ['rent', 'buy']:
       queryset = queryset.filter(rent_or_buy=rent_or_buy)
+      
+    # Handle dashboard filters
+    if filter_type:
+      if filter_type == 'all':
+        # Return all properties (no additional filtering)
+        pass
+      elif filter_type == 'sold':
+        queryset = queryset.filter(
+          agreements__status='active',
+          rent_or_buy='buy'
+        )
+      elif filter_type == 'rent':
+        queryset = queryset.filter(
+          agreements__status='active',
+          rent_or_buy='rent'
+        )
+      elif filter_type == 'hold':
+        queryset = queryset.filter(status='inactive')
+      elif filter_type == 'pending':
+        queryset = queryset.filter(agreements__status='pending')
     
     queryset = queryset.order_by('-created_at')
-    return queryset
+    return queryset.distinct()
 
   @action(detail=True, methods=['delete'])
   def delete_image(self, request, pk=None):
