@@ -37,23 +37,26 @@ class PropertyViewSet(viewsets.ModelViewSet):
       queryset = queryset.filter(rent_or_buy=rent_or_buy)
       
     # Handle dashboard filters
-    if filter_type:
-      if filter_type == 'all':
-        # Return all properties (no additional filtering)
+    if not filter_type:
+        # Show only available properties (not sold or rented)
+        queryset = queryset.exclude(
+            agreements__status='active'
+        )
+    elif filter_type == 'all':
         pass
-      elif filter_type == 'sold':
+    elif filter_type == 'sold':
         queryset = queryset.filter(
-          agreements__status='active',
-          rent_or_buy='buy'
+            agreements__status='active',
+            rent_or_buy='buy'
         )
-      elif filter_type == 'rent':
+    elif filter_type == 'rent':
         queryset = queryset.filter(
-          agreements__status='active',
-          rent_or_buy='rent'
+            agreements__status='active',
+            rent_or_buy='rent'
         )
-      elif filter_type == 'hold':
+    elif filter_type == 'hold':
         queryset = queryset.filter(status='inactive')
-      elif filter_type == 'pending':
+    elif filter_type == 'pending':
         queryset = queryset.filter(agreements__status='pending')
     
     queryset = queryset.order_by('-created_at')
