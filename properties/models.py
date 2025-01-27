@@ -428,17 +428,50 @@ class Transaction(models.Model):
         ordering = ['-date', '-created_at']
 
     def save(self, *args, **kwargs):
-        # Calculate balance before saving
-        if self.type == 'debit':
-            self.balance = (self.ledger.balance or 0) + self.amount
-            self.ledger.debit_total = (self.ledger.debit_total or 0) + self.amount
-        else:
-            self.balance = (self.ledger.balance or 0) - self.amount
-            self.ledger.credit_total = (self.ledger.credit_total or 0) + self.amount
+        is_new = self._state.adding  # Check if this is a new transaction
         
-        # Update ledger balance
-        self.ledger.balance = self.balance
+        if not is_new:
+            # If updating, first reverse the previous transaction's effect
+            old_transaction = Transaction.objects.get(pk=self.pk)
+            if old_transaction.type == 'debit':
+                self.ledger.debit_total -= old_transaction.amount
+                self.ledger.balance -= old_transaction.amount
+            else:
+                self.ledger.credit_total -= old_transaction.amount
+                self.ledger.balance += old_transaction.amount
+
+        # Apply the new transaction
+        if self.type == 'debit':
+            self.ledger.debit_total += self.amount
+            self.ledger.balance += self.amount
+        else:
+            self.ledger.credit_total += self.amount
+            self.ledger.balance -= self.amount
+        
+        # Update the balance for this transaction
+        self.balance = self.ledger.balance
+        
+        # Save the ledger first
         self.ledger.save()
         
+        # Then save the transaction
         super().save(*args, **kwargs)
+
+        # If this is not a new transaction, recalculate balances for all subsequent transactions
+        if not is_new:
+            subsequent_transactions = Transaction.objects.filter(
+                ledger=self.ledger,
+                date__gte=self.date,
+                created_at__gt=self.created_at
+            ).order_by('date', 'created_at')
+            
+            current_balance = self.balance
+            for trans in subsequent_transactions:
+                if trans.id != self.id:  # Skip the current transaction
+                    if trans.type == 'debit':
+                        current_balance += trans.amount
+                    else:
+                        current_balance -= trans.amount
+                    trans.balance = current_balance
+                    Transaction.objects.filter(id=trans.id).update(balance=current_balance)
 
