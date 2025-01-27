@@ -351,3 +351,94 @@ class UtilityBill(models.Model):
     def __str__(self):
         return f"{self.bill_type} bill for {self.agreement}"
 
+class Account(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        ordering = ['name']
+
+class Ledger(models.Model):
+    account = models.ForeignKey(
+        Account,
+        on_delete=models.CASCADE,
+        related_name='ledgers'
+    )
+    title = models.CharField(max_length=200)
+    debit_total = models.DecimalField(
+        max_digits=15,
+        decimal_places=2,
+        default=0
+    )
+    credit_total = models.DecimalField(
+        max_digits=15,
+        decimal_places=2,
+        default=0
+    )
+    balance = models.DecimalField(
+        max_digits=15,
+        decimal_places=2,
+        default=0
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.account.name} - {self.title}"
+
+    class Meta:
+        ordering = ['-created_at']
+
+class Transaction(models.Model):
+    TRANSACTION_TYPES = (
+        ('debit', 'Debit'),
+        ('credit', 'Credit')
+    )
+
+    ledger = models.ForeignKey(
+        Ledger,
+        on_delete=models.CASCADE,
+        related_name='transactions'
+    )
+    detail = models.TextField()
+    date = models.DateField()
+    amount = models.DecimalField(
+        max_digits=15,
+        decimal_places=2
+    )
+    type = models.CharField(
+        max_length=6,
+        choices=TRANSACTION_TYPES
+    )
+    balance = models.DecimalField(
+        max_digits=15,
+        decimal_places=2
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.ledger.title} - {self.type} - {self.amount}"
+
+    class Meta:
+        ordering = ['-date', '-created_at']
+
+    def save(self, *args, **kwargs):
+        # Calculate balance before saving
+        if self.type == 'debit':
+            self.balance = (self.ledger.balance or 0) + self.amount
+            self.ledger.debit_total = (self.ledger.debit_total or 0) + self.amount
+        else:
+            self.balance = (self.ledger.balance or 0) - self.amount
+            self.ledger.credit_total = (self.ledger.credit_total or 0) + self.amount
+        
+        # Update ledger balance
+        self.ledger.balance = self.balance
+        self.ledger.save()
+        
+        super().save(*args, **kwargs)
+

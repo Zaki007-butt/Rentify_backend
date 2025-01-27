@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Property, PropertyCategory, PropertyType, Agreement, Customer, PropertyImage, Payment, UtilityBill
+from .models import Property, PropertyCategory, PropertyType, Agreement, Customer, PropertyImage, Payment, UtilityBill, Account, Ledger, Transaction
 from account.models import User
 from django.core.files.base import ContentFile
 import base64
@@ -214,3 +214,45 @@ class UtilityBillSerializer(serializers.ModelSerializer):
                 'email': obj.agreement.customer.user.email
             }
         }
+
+class AccountSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Account
+        fields = ['id', 'name', 'created_at', 'updated_at']
+        read_only_fields = ['created_at', 'updated_at']
+
+class LedgerSerializer(serializers.ModelSerializer):
+    account_name = serializers.CharField(source='account.name', read_only=True)
+
+    class Meta:
+        model = Ledger
+        fields = [
+            'id', 'account', 'account_name', 'title',
+            'debit_total', 'credit_total', 'balance',
+            'created_at', 'updated_at'
+        ]
+        read_only_fields = [
+            'debit_total', 'credit_total', 'balance',
+            'created_at', 'updated_at'
+        ]
+
+class TransactionSerializer(serializers.ModelSerializer):
+    ledger_title = serializers.CharField(source='ledger.title', read_only=True)
+    account_name = serializers.CharField(source='ledger.account.name', read_only=True)
+
+    class Meta:
+        model = Transaction
+        fields = [
+            'id', 'ledger', 'ledger_title', 'account_name',
+            'detail', 'date', 'amount', 'type', 'balance',
+            'created_at', 'updated_at'
+        ]
+        read_only_fields = ['balance', 'created_at', 'updated_at']
+
+    def validate(self, data):
+        # Ensure amount is positive
+        if data.get('amount', 0) <= 0:
+            raise serializers.ValidationError({
+                "amount": "Amount must be greater than zero"
+            })
+        return data

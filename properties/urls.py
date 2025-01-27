@@ -8,7 +8,10 @@ from .views import (
     CustomerViewSet,
     PaymentViewSet,
     UtilityBillViewSet,
-    get_dashboard_stats
+    get_dashboard_stats,
+    AccountViewSet,
+    LedgerViewSet,
+    TransactionViewSet
 )
 
 router = DefaultRouter()
@@ -19,6 +22,9 @@ router.register(r'agreements', AgreementViewSet)
 router.register(r'customers', CustomerViewSet)
 router.register(r'payments', PaymentViewSet)
 router.register(r'utility-bills', UtilityBillViewSet)
+router.register(r'accounts', AccountViewSet)
+router.register(r'ledgers', LedgerViewSet)
+router.register(r'transactions', TransactionViewSet)
 
 urlpatterns = [
   path('', include(router.urls)),

@@ -1,7 +1,7 @@
 from rest_framework import viewsets, filters
 from rest_framework.pagination import PageNumberPagination
-from .models import Property, PropertyCategory, PropertyType, Customer, Agreement, PropertyImage, Payment, UtilityBill
-from .serializers import PropertySerializer, PropertyCategorySerializer, PropertyTypeSerializer, CustomerSerializer, PaymentSerializer, UtilityBillSerializer
+from .models import Property, PropertyCategory, PropertyType, Customer, Agreement, PropertyImage, Payment, UtilityBill, Account, Ledger, Transaction
+from .serializers import PropertySerializer, PropertyCategorySerializer, PropertyTypeSerializer, CustomerSerializer, PaymentSerializer, UtilityBillSerializer, AccountSerializer, LedgerSerializer, TransactionSerializer
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
 from .serializers import AgreementSerializer
@@ -292,3 +292,52 @@ def get_dashboard_stats(request):
         'on_hold': on_hold,
         'pending_requests': pending_requests
     })
+
+class AccountViewSet(viewsets.ModelViewSet):
+    queryset = Account.objects.all()
+    serializer_class = AccountSerializer
+    http_method_names = ['get', 'post', 'put', 'patch']  # Exclude delete
+
+    def get_queryset(self):
+        queryset = Account.objects.all()
+        name = self.request.query_params.get('name', None)
+        if name:
+            queryset = queryset.filter(name__icontains=name)
+        return queryset.order_by('name')
+
+class LedgerViewSet(viewsets.ModelViewSet):
+    queryset = Ledger.objects.all()
+    serializer_class = LedgerSerializer
+    filterset_fields = ['account']
+    search_fields = ['title', 'account__name']
+    ordering_fields = ['created_at', 'balance', 'title']
+
+    def get_queryset(self):
+        queryset = Ledger.objects.all()
+        account_id = self.request.query_params.get('account_id', None)
+        if account_id:
+            queryset = queryset.filter(account_id=account_id)
+        return queryset.order_by('-created_at')
+
+class TransactionViewSet(viewsets.ModelViewSet):
+    queryset = Transaction.objects.all()
+    serializer_class = TransactionSerializer
+    http_method_names = ['get', 'post', 'put', 'patch']  # Exclude delete
+    filterset_fields = ['ledger', 'type', 'date']
+    search_fields = ['detail', 'ledger__title']
+    ordering_fields = ['date', 'amount', 'created_at']
+
+    def get_queryset(self):
+        queryset = Transaction.objects.all()
+        ledger_id = self.request.query_params.get('ledger_id', None)
+        start_date = self.request.query_params.get('start_date', None)
+        end_date = self.request.query_params.get('end_date', None)
+        
+        if ledger_id:
+            queryset = queryset.filter(ledger_id=ledger_id)
+        if start_date:
+            queryset = queryset.filter(date__gte=start_date)
+        if end_date:
+            queryset = queryset.filter(date__lte=end_date)
+            
+        return queryset.order_by('-date', '-created_at')
